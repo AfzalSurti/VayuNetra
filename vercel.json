@@ -1,0 +1,8 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/proxy/ncei/:path*", "destination": "https://www.ncei.noaa.gov/:path*" }
+  ]
+}

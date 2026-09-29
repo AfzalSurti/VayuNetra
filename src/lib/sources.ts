@@ -16,9 +16,9 @@ export interface SourceDef {
 
 const env = import.meta.env;
 export const IBTRACS_BASE = '/data/international-best-track-archive-for-climate-stewardship-ibtracs/v04r01/access/csv/';
-// In dev/preview, requests go through the Vite proxy (/proxy/ncei); a production
-// deployment must provide an equivalent pass-through or set the VITE_ overrides.
-const nceiPrefix = import.meta.env.DEV || env.VITE_USE_PROXY === 'true' ? '/proxy/ncei' : 'https://www.ncei.noaa.gov';
+// Requests go through a same-origin pass-through (/proxy/ncei): the Vite proxy in dev/preview,
+// the rewrite in vercel.json on Vercel. Set VITE_USE_PROXY=false to call NCEI directly.
+const nceiPrefix = env.VITE_USE_PROXY === 'false' ? 'https://www.ncei.noaa.gov' : '/proxy/ncei';
 export const IBTRACS_URLS = {
   NI: env.VITE_IBTRACS_NI_URL || `${nceiPrefix}${IBTRACS_BASE}ibtracs.NI.list.v04r01.csv`,
   ACTIVE: env.VITE_IBTRACS_ACTIVE_URL || `${nceiPrefix}${IBTRACS_BASE}ibtracs.ACTIVE.list.v04r01.csv`,

@@ -17,8 +17,8 @@ npm run dev        # http://localhost:5173
 npm run build      # production bundle in dist/
 ```
 The dev server proxies `/proxy/ncei/*` to `https://www.ncei.noaa.gov` because the IBTrACS CSV files may not be served with
-CORS headers. For a static deployment, either host an equivalent pass-through at the same path and build with
-`VITE_USE_PROXY=true`, or point `VITE_IBTRACS_NI_URL` / `VITE_IBTRACS_ACTIVE_URL` at a same-origin mirror of the **unmodified**
+CORS headers. Production builds also use `/proxy/ncei` by default (on Vercel, `vercel.json` provides the rewrite); set
+`VITE_USE_PROXY=false` to call NCEI directly, or point `VITE_IBTRACS_NI_URL` / `VITE_IBTRACS_ACTIVE_URL` at a same-origin mirror of the **unmodified**
 official files. If retrieval still fails, the UI offers to load the official CSV downloaded manually from NCEI.
 
 ## Environment variables (`.env.example`)
@@ -26,7 +26,7 @@ official files. If retrieval still fails, the UI offers to load the official CSV
 |---|---|---|
 | `VITE_IBTRACS_NI_URL` | frontend | optional override of the IBTrACS NI CSV URL |
 | `VITE_IBTRACS_ACTIVE_URL` | frontend | optional override of the IBTrACS ACTIVE CSV URL |
-| `VITE_USE_PROXY` | frontend | `true` to use `/proxy/ncei` in production builds |
+| `VITE_USE_PROXY` | frontend | `false` to bypass the `/proxy/ncei` pass-through |
 | `MOSDAC_USERNAME`, `MOSDAC_PASSWORD` | *future backend only* | never put these in `VITE_*` — they would be shipped to the browser |
 
 ## Data sources (details: [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md))
@@ -87,8 +87,22 @@ need an INSAT imagery archive from MOSDAC. Detection precision/recall/F1 are the
 - The NI CSV is large; the first load can take a while on slow connections.
 
 ## Deployment
-`npm run build` and serve `dist/` from any static host, with a pass-through for `/proxy/ncei` (see Quick start) if CORS
-blocks direct access.
+
+### Vercel (recommended)
+1. Push this repo to GitHub (already done).
+2. Go to https://vercel.com/new → **Import Git Repository** → pick `VayuNetra`.
+3. Vercel detects **Vite** from `vercel.json`; keep Build Command `npm run build` and Output Directory `dist`.
+4. Environment variables: none required. Never add MOSDAC credentials as `VITE_*` variables.
+5. Click **Deploy**. Every push to the branch creates a preview deployment; merges to `main` go to production.
+
+Or from a terminal: `npm i -g vercel && vercel` (preview) then `vercel --prod`.
+
+`vercel.json` rewrites `/proxy/ncei/*` → `https://www.ncei.noaa.gov/*` so the browser can read the IBTrACS CSV files
+without CORS problems. If the proxied download fails (e.g. size/time limits), the app shows the error and offers to load
+the official CSV from disk.
+
+### Other static hosts
+`npm run build` and serve `dist/`, with an equivalent `/proxy/ncei` pass-through, or build with `VITE_USE_PROXY=false`.
 
 ## Licensing / attribution
 - IBTrACS: cite Knapp et al. (2010), BAMS 91, 363–376, and the IBTrACS v04 dataset (NOAA NCEI). RSMC New Delhi (IMD) is the
